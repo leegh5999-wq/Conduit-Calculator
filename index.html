@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전선관 사이즈 선정 계산기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:#f3f4f6;font-family:'Noto Sans KR',-apple-system,sans-serif;color:#1f2937;font-size:14px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#e5e7eb}
+::-webkit-scrollbar-thumb{background:#9ca3af;border-radius:3px}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+button:active{transform:scale(0.98)}
+input,select{font-family:inherit;outline:none}
+.mono{font-family:'JetBrains Mono',monospace}
+.header{background:#fff;border-bottom:2px solid #d1d5db;padding:14px 16px}
+.header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.header-icon{width:36px;height:36px;border-radius:8px;background:#1e40af;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;flex-shrink:0}
+.header h1{font-size:18px;font-weight:800;color:#111827}
+.header p{margin:2px 0 0;font-size:11px;color:#6b7280;font-weight:500}
+.container{max-width:1200px;margin:0 auto;padding:12px 12px 40px}
+.disclaimer{background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#92400e;line-height:1.7;font-weight:500}
+.disclaimer strong{color:#78350f}
+.top-tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.top-tab{padding:8px 14px;font-size:12px;font-weight:500;border:2px solid #d1d5db;border-radius:8px;color:#374151;background:#fff}
+.top-tab.active{font-weight:700;border-color:#1e40af;color:#fff;background:#1e40af}
+.card{background:#fff;border:1px solid #d1d5db;border-radius:10px;overflow:hidden;margin-bottom:16px}
+.card-head{padding:12px 16px;border-bottom:1px solid;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+table{width:100%;border-collapse:collapse}
+th{padding:8px;font-size:11px;font-weight:700;color:#1f2937;background:#e5e7eb;white-space:nowrap;text-align:left;border-bottom:2px solid #9ca3af}
+td{padding:4px 6px;font-size:13px;color:#1f2937;border-bottom:1px solid #e5e7eb}
+.inp{background:#fffde7;border:1.5px solid #f59e0b;border-radius:4px;color:#1f2937;padding:5px 7px;font-size:13px;width:100%}
+.inp:focus{border-color:#d97706;box-shadow:0 0 0 2px rgba(217,119,6,.15)}
+.inp-num{text-align:center;font-family:'JetBrains Mono',monospace}
+.btn{color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:600;white-space:nowrap}
+.bp{background:#1e40af}.bg{background:#059669}.bgr{background:#6b7280}.bo{background:#d97706}.br{background:#dc2626}
+.bx{background:#fef2f2;border:1px solid #fca5a5;border-radius:4px;color:#dc2626;width:24px;height:24px;font-size:13px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.bx:hover{background:#dc2626;color:#fff}
+.fbar{display:flex;gap:2px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid #d1d5db;background:#f9fafb}
+.fb{padding:5px 10px;font-size:11px;font-weight:500;border-radius:6px;background:transparent;color:#374151}
+.fb.on{font-weight:700;background:#1e40af;color:#fff}
+.rg{padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.rc{border-radius:8px;padding:12px 14px;position:relative;overflow:hidden;border:1.5px solid #e5e7eb;background:#f9fafb}
+.rc .bar{position:absolute;top:0;left:0;right:0;height:3px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:#065f46;color:#fff;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.2);opacity:0;transition:all .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.fi{padding:10px 12px;background:#e5e7eb;border-radius:8px;display:flex;flex-wrap:wrap;gap:4px 16px;font-size:11px;color:#374151;font-weight:500}
+.tp{display:none}.tp.on{display:block}
+.tb{padding:10px 12px;border-top:1px solid #d1d5db;display:flex;gap:6px;background:#f9fafb;flex-wrap:wrap}
+.sc{background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:20px;margin-bottom:16px}
+.sc h3{font-size:15px;font-weight:700;margin-bottom:6px}.sc p{font-size:12px;color:#6b7280;line-height:1.6;margin-bottom:12px}
+.sr{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:640px){
+.header h1{font-size:15px}.top-tab{padding:7px 10px;font-size:11px}
+.rg{grid-template-columns:1fr}th,td{padding:4px 5px;font-size:12px}
+.btn{padding:6px 10px;font-size:11px}.fb{font-size:10px;padding:4px 8px}
+}
+</style>
+</head>
+<body>
+<div class="header"><div class="header-inner"><div class="header-icon">⚡</div><div><h1>전선관 사이즈 선정 계산기</h1><p>KECG 1701-2021 기준 · 내단면적 1/3 충전율 적용</p></div></div></div>
+<div class="container">
+<div class="disclaimer"><strong>⚠ 주의:</strong> 본 도구의 계산 결과는 참고용이며, 설계 책임은 사용자에게 있습니다.<br>적용 전 반드시 관련 기준 및 제조사 카탈로그와 대조하여 검증하십시오.</div>
+<div class="top-tabs">
+<button class="top-tab active" data-tab="calc">📋 배관 계산</button>
+<button class="top-tab" data-tab="cables">🔌 케이블 자료</button>
+<button class="top-tab" data-tab="conduits">📐 배관 단면적</button>
+<button class="top-tab" data-tab="sync">💾 데이터 관리</button>
+</div>
+<div id="tab-calc" class="tp on"></div>
+<div id="tab-cables" class="tp"></div>
+<div id="tab-conduits" class="tp"></div>
+<div id="tab-sync" class="tp"></div>
+</div>
+<div id="toast" class="toast"></div>
+<input type="file" id="fileInput" accept=".json" style="display:none">
+<script>
+var DC=[
+{id:1,type:"HFIX",core:"1",size:"1.5㎟",od:3.3,area:9},{id:2,type:"HFIX",core:"1",size:"2.5㎟",od:4,area:13},{id:3,type:"HFIX",core:"1",size:"4㎟",od:4.6,area:17},{id:4,type:"HFIX",core:"1",size:"6㎟",od:5.2,area:21},{id:5,type:"HFIX",core:"1",size:"10㎟",od:6.6,area:34},{id:6,type:"HFIX",core:"1",size:"16㎟",od:8,area:50},{id:7,type:"HFIX",core:"1",size:"25㎟",od:10.1,area:80},{id:8,type:"HFIX",core:"1",size:"35㎟",od:11.3,area:100},{id:9,type:"HFIX",core:"1",size:"50㎟",od:13.2,area:137},{id:10,type:"HFIX",core:"1",size:"70㎟",od:15.1,area:179},{id:11,type:"HFIX",core:"1",size:"95㎟",od:17.6,area:243},{id:12,type:"HFIX",core:"1",size:"120㎟",od:19.4,area:296},{id:13,type:"HFIX",core:"1",size:"150㎟",od:21.6,area:366},{id:14,type:"HFIX",core:"1",size:"185㎟",od:24.1,area:456},{id:15,type:"HFIX",core:"1",size:"240㎟",od:27.5,area:594},{id:16,type:"HFIX",core:"1",size:"300㎟",od:30.6,area:735},{id:17,type:"HFIX",core:"1",size:"400㎟",od:34.3,area:924},
+{id:19,type:"HIV",core:"1",size:"1.5㎟",od:3.2,area:8},{id:20,type:"HIV",core:"1",size:"2.5㎟",od:3.9,area:12},
+{id:22,type:"F-CV",core:"1C",size:"1.5㎟",od:6.3,area:31},{id:23,type:"F-CV",core:"1C",size:"2.5㎟",od:6.7,area:35},{id:24,type:"F-CV",core:"1C",size:"4㎟",od:7.2,area:41},{id:25,type:"F-CV",core:"1C",size:"6㎟",od:7.8,area:48},{id:26,type:"F-CV",core:"1C",size:"10㎟",od:9.4,area:69},{id:27,type:"F-CV",core:"1C",size:"16㎟",od:10,area:79},{id:28,type:"F-CV",core:"1C",size:"25㎟",od:12,area:113},{id:29,type:"F-CV",core:"1C",size:"35㎟",od:13,area:133},{id:30,type:"F-CV",core:"1C",size:"50㎟",od:14.5,area:165},{id:31,type:"F-CV",core:"1C",size:"70㎟",od:16,area:201},{id:32,type:"F-CV",core:"1C",size:"95㎟",od:18.5,area:269},{id:33,type:"F-CV",core:"1C",size:"120㎟",od:20,area:314},{id:34,type:"F-CV",core:"1C",size:"150㎟",od:22,area:380},{id:35,type:"F-CV",core:"1C",size:"185㎟",od:24,area:452},{id:36,type:"F-CV",core:"1C",size:"240㎟",od:27,area:573},{id:37,type:"F-CV",core:"1C",size:"300㎟",od:30,area:707},{id:38,type:"F-CV",core:"1C",size:"400㎟",od:34,area:908},{id:39,type:"F-CV",core:"1C",size:"500㎟",od:37,area:1075},{id:40,type:"F-CV",core:"1C",size:"630㎟",od:42,area:1385},
+{id:42,type:"F-CV",core:"2C",size:"1.5㎟",od:11,area:95},{id:43,type:"F-CV",core:"2C",size:"2.5㎟",od:12,area:113},{id:44,type:"F-CV",core:"2C",size:"4㎟",od:13,area:133},{id:45,type:"F-CV",core:"2C",size:"6㎟",od:14,area:154},{id:46,type:"F-CV",core:"2C",size:"10㎟",od:17,area:227},{id:47,type:"F-CV",core:"2C",size:"16㎟",od:18.5,area:269},{id:48,type:"F-CV",core:"2C",size:"25㎟",od:22,area:380},{id:49,type:"F-CV",core:"2C",size:"35㎟",od:24,area:452},{id:50,type:"F-CV",core:"2C",size:"50㎟",od:27,area:573},{id:51,type:"F-CV",core:"2C",size:"70㎟",od:31,area:755},{id:52,type:"F-CV",core:"2C",size:"95㎟",od:35,area:962},{id:53,type:"F-CV",core:"2C",size:"120㎟",od:38,area:1134},{id:54,type:"F-CV",core:"2C",size:"150㎟",od:43,area:1452},{id:55,type:"F-CV",core:"2C",size:"185㎟",od:47,area:1735},{id:56,type:"F-CV",core:"2C",size:"240㎟",od:53,area:2206},{id:57,type:"F-CV",core:"2C",size:"300㎟",od:58,area:2642},
+{id:59,type:"F-CV",core:"3C",size:"1.5㎟",od:11.5,area:104},{id:60,type:"F-CV",core:"3C",size:"2.5㎟",od:12.5,area:123},{id:61,type:"F-CV",core:"3C",size:"4㎟",od:13.5,area:143},{id:62,type:"F-CV",core:"3C",size:"6㎟",od:14.5,area:165},{id:63,type:"F-CV",core:"3C",size:"10㎟",od:18,area:254},{id:64,type:"F-CV",core:"3C",size:"16㎟",od:19.5,area:299},{id:65,type:"F-CV",core:"3C",size:"25㎟",od:23,area:415},{id:66,type:"F-CV",core:"3C",size:"35㎟",od:25,area:491},{id:67,type:"F-CV",core:"3C",size:"50㎟",od:29,area:661},{id:68,type:"F-CV",core:"3C",size:"70㎟",od:33,area:855},{id:69,type:"F-CV",core:"3C",size:"95㎟",od:37,area:1075},{id:70,type:"F-CV",core:"3C",size:"120㎟",od:41,area:1320},{id:71,type:"F-CV",core:"3C",size:"150㎟",od:46,area:1662},{id:72,type:"F-CV",core:"3C",size:"185㎟",od:50,area:1963},{id:73,type:"F-CV",core:"3C",size:"240㎟",od:57,area:2552},{id:74,type:"F-CV",core:"3C",size:"300㎟",od:62,area:3019},
+{id:76,type:"F-CV",core:"4C",size:"1.5㎟",od:12.5,area:123},{id:77,type:"F-CV",core:"4C",size:"2.5㎟",od:13.5,area:143},{id:78,type:"F-CV",core:"4C",size:"4㎟",od:14.5,area:165},{id:79,type:"F-CV",core:"4C",size:"6㎟",od:16,area:201},{id:80,type:"F-CV",core:"4C",size:"10㎟",od:20,area:314},{id:81,type:"F-CV",core:"4C",size:"16㎟",od:22,area:380},{id:82,type:"F-CV",core:"4C",size:"25㎟",od:26,area:531},{id:83,type:"F-CV",core:"4C",size:"35㎟",od:28,area:616},{id:84,type:"F-CV",core:"4C",size:"50㎟",od:32,area:804},{id:85,type:"F-CV",core:"4C",size:"70㎟",od:36,area:1018},{id:86,type:"F-CV",core:"4C",size:"95㎟",od:42,area:1385},{id:87,type:"F-CV",core:"4C",size:"120㎟",od:46,area:1662},{id:88,type:"F-CV",core:"4C",size:"150㎟",od:51,area:2043},{id:89,type:"F-CV",core:"4C",size:"185㎟",od:56,area:2463},{id:90,type:"F-CV",core:"4C",size:"240㎟",od:63,area:3117},{id:91,type:"F-CV",core:"4C",size:"300㎟",od:70,area:3848},
+{id:93,type:"F-GV",core:"1C",size:"1.5㎟",od:6.5,area:33},{id:94,type:"F-GV",core:"1C",size:"2.5㎟",od:7,area:38},{id:95,type:"F-GV",core:"1C",size:"4㎟",od:8,area:50},{id:96,type:"F-GV",core:"1C",size:"6㎟",od:8.5,area:57},{id:97,type:"F-GV",core:"1C",size:"10㎟",od:9.5,area:71},{id:98,type:"F-GV",core:"1C",size:"16㎟",od:10,area:79},{id:99,type:"F-GV",core:"1C",size:"25㎟",od:12,area:113},{id:100,type:"F-GV",core:"1C",size:"35㎟",od:13,area:133},{id:101,type:"F-GV",core:"1C",size:"50㎟",od:14.5,area:165},{id:102,type:"F-GV",core:"1C",size:"70㎟",od:16,area:201},{id:103,type:"F-GV",core:"1C",size:"95㎟",od:18.5,area:269},{id:104,type:"F-GV",core:"1C",size:"120㎟",od:20,area:314},{id:105,type:"F-GV",core:"1C",size:"150㎟",od:22,area:380},{id:106,type:"F-GV",core:"1C",size:"185㎟",od:25,area:491},{id:107,type:"F-GV",core:"1C",size:"240㎟",od:28,area:616},{id:108,type:"F-GV",core:"1C",size:"300㎟",od:30,area:707},{id:109,type:"F-GV",core:"1C",size:"400㎟",od:34,area:908},{id:110,type:"F-GV",core:"1C",size:"500㎟",od:38,area:1134},{id:111,type:"F-GV",core:"1C",size:"630㎟",od:42,area:1385},
+{id:113,type:"F-CVV",core:"2C",size:"1.5㎟",od:12,area:113},{id:114,type:"F-CVV",core:"2C",size:"2.5㎟",od:13,area:133},{id:115,type:"F-CVV",core:"2C",size:"4㎟",od:14.5,area:165},{id:116,type:"F-CVV",core:"2C",size:"6㎟",od:16,area:201},{id:117,type:"F-CVV",core:"2C",size:"10㎟",od:17.5,area:241},
+{id:119,type:"F-CVV",core:"3C",size:"1.5㎟",od:12.5,area:123},{id:120,type:"F-CVV",core:"3C",size:"2.5㎟",od:13.5,area:143},{id:121,type:"F-CVV",core:"3C",size:"4㎟",od:15.5,area:189},{id:122,type:"F-CVV",core:"3C",size:"6㎟",od:17,area:227},{id:123,type:"F-CVV",core:"3C",size:"10㎟",od:18.5,area:269},
+{id:125,type:"F-CVV",core:"4C",size:"1.5㎟",od:13.5,area:143},{id:126,type:"F-CVV",core:"4C",size:"2.5㎟",od:14.5,area:165},{id:127,type:"F-CVV",core:"4C",size:"4㎟",od:16.5,area:214},{id:128,type:"F-CVV",core:"4C",size:"6㎟",od:18,area:254},{id:129,type:"F-CVV",core:"4C",size:"10㎟",od:20.5,area:330},
+{id:131,type:"F-CVV",core:"5C",size:"1.5㎟",od:14.5,area:165},{id:132,type:"F-CVV",core:"5C",size:"2.5㎟",od:15.5,area:189},{id:133,type:"F-CVV",core:"5C",size:"4㎟",od:18,area:254},{id:134,type:"F-CVV",core:"5C",size:"6㎟",od:19.5,area:299},{id:135,type:"F-CVV",core:"5C",size:"10㎟",od:22.5,area:398},
+{id:137,type:"F-CVV",core:"6C",size:"1.5㎟",od:14.5,area:165},{id:138,type:"F-CVV",core:"6C",size:"2.5㎟",od:15.5,area:189},{id:139,type:"F-CVV",core:"6C",size:"4㎟",od:18.5,area:269},{id:140,type:"F-CVV",core:"6C",size:"6㎟",od:21,area:346},{id:141,type:"F-CVV",core:"6C",size:"10㎟",od:23,area:415},
+{id:143,type:"F-CVV",core:"7C",size:"1.5㎟",od:14.5,area:165},{id:144,type:"F-CVV",core:"7C",size:"2.5㎟",od:15.5,area:189},{id:145,type:"F-CVV",core:"7C",size:"4㎟",od:18.5,area:269},{id:146,type:"F-CVV",core:"7C",size:"6㎟",od:21,area:346},{id:147,type:"F-CVV",core:"7C",size:"10㎟",od:23,area:415},
+{id:149,type:"F-CVV",core:"8C",size:"1.5㎟",od:15.5,area:189},{id:150,type:"F-CVV",core:"8C",size:"2.5㎟",od:16.5,area:214},{id:151,type:"F-CVV",core:"8C",size:"4㎟",od:20,area:314},{id:152,type:"F-CVV",core:"8C",size:"6㎟",od:22,area:380},{id:153,type:"F-CVV",core:"8C",size:"10㎟",od:25,area:491},
+{id:155,type:"F-CVV",core:"10C",size:"1.5㎟",od:18,area:254},{id:156,type:"F-CVV",core:"10C",size:"2.5㎟",od:19.5,area:299},{id:157,type:"F-CVV",core:"10C",size:"4㎟",od:23,area:415},{id:158,type:"F-CVV",core:"10C",size:"6㎟",od:26,area:531},{id:159,type:"F-CVV",core:"10C",size:"10㎟",od:29,area:661},
+{id:161,type:"F-CVV",core:"12C",size:"1.5㎟",od:18.5,area:269},{id:162,type:"F-CVV",core:"12C",size:"2.5㎟",od:20,area:314},{id:163,type:"F-CVV",core:"12C",size:"4㎟",od:24,area:452},{id:164,type:"F-CVV",core:"12C",size:"6㎟",od:27,area:573},{id:165,type:"F-CVV",core:"12C",size:"10㎟",od:30,area:707},
+{id:167,type:"F-CVV",core:"15C",size:"1.5㎟",od:19.5,area:299},{id:168,type:"F-CVV",core:"15C",size:"2.5㎟",od:22,area:380},{id:169,type:"F-CVV",core:"15C",size:"4㎟",od:26,area:531},{id:170,type:"F-CVV",core:"15C",size:"6㎟",od:29,area:661},
+{id:172,type:"F-CVV",core:"20C",size:"1.5㎟",od:22,area:380},{id:173,type:"F-CVV",core:"20C",size:"2.5㎟",od:24,area:452},{id:174,type:"F-CVV",core:"20C",size:"4㎟",od:29,area:661},{id:175,type:"F-CVV",core:"20C",size:"6㎟",od:32,area:804},
+{id:177,type:"F-CVV",core:"30C",size:"1.5㎟",od:26,area:531},{id:178,type:"F-CVV",core:"30C",size:"2.5㎟",od:28,area:616},{id:179,type:"F-CVV",core:"30C",size:"4㎟",od:35,area:962},
+{id:181,type:"22.9kV CN/CV-W",core:"1C",size:"60㎟",od:37,area:1075},{id:182,type:"22.9kV CN/CV-W",core:"1C",size:"100㎟",od:41,area:1320},{id:183,type:"22.9kV CN/CV-W",core:"1C",size:"150㎟",od:44,area:1521},{id:184,type:"22.9kV CN/CV-W",core:"1C",size:"200㎟",od:46,area:1662},{id:185,type:"22.9kV CN/CV-W",core:"1C",size:"250㎟",od:49,area:1886},{id:186,type:"22.9kV CN/CV-W",core:"1C",size:"325㎟",od:52,area:2124},{id:187,type:"22.9kV CN/CV-W",core:"1C",size:"400㎟",od:55,area:2376},{id:188,type:"22.9kV CN/CV-W",core:"1C",size:"500㎟",od:58,area:2642},{id:189,type:"22.9kV CN/CV-W",core:"1C",size:"600㎟",od:63,area:3117},
+{id:192,type:"UTP",core:"CAT-5e",size:"2P",od:4,area:13}
+];
+var DD={
+CD:[{size:"16C",innerD:16,capacity:66},{size:"22C",innerD:22,capacity:126},{size:"28C",innerD:28,capacity:205},{size:"36C",innerD:36,capacity:320},{size:"42C",innerD:42,capacity:461}],
+HI:[{size:"16C",innerD:18,capacity:84},{size:"22C",innerD:22,capacity:126},{size:"28C",innerD:28,capacity:205},{size:"36C",innerD:35,capacity:320},{size:"42C",innerD:40,capacity:418},{size:"54C",innerD:51,capacity:680},{size:"70C",innerD:67,capacity:1174},{size:"82C",innerD:77,capacity:1551},{size:"100C",innerD:101,capacity:2669}],
+ST:[{size:"16C",innerD:16.4,capacity:70},{size:"22C",innerD:21.9,capacity:125},{size:"28C",innerD:28.3,capacity:209},{size:"36C",innerD:36.9,capacity:356},{size:"42C",innerD:42.8,capacity:479},{size:"54C",innerD:54,capacity:763},{size:"70C",innerD:69.6,capacity:1267},{size:"82C",innerD:82.3,capacity:1772},{size:"92C",innerD:93.7,capacity:2297},{size:"104C",innerD:106.4,capacity:2962}],
+FLEX:[{size:"16C",innerD:15.8,capacity:65},{size:"22C",innerD:20.8,capacity:113},{size:"28C",innerD:26.4,capacity:182},{size:"36C",innerD:35,capacity:320},{size:"42C",innerD:40,capacity:418},{size:"54C",innerD:51.3,capacity:688},{size:"70C",innerD:62.9,capacity:1035},{size:"82C",innerD:77.9,capacity:1587},{size:"92C",innerD:88.9,capacity:2068},{size:"104C",innerD:101.6,capacity:2701}],
+ELP:[{size:"ELP 30",innerD:30,capacity:235},{size:"ELP 40",innerD:40,capacity:418},{size:"ELP 50",innerD:50,capacity:654},{size:"ELP 65",innerD:65,capacity:1105},{size:"ELP 80",innerD:80,capacity:1674},{size:"ELP 100",innerD:100,capacity:2616},{size:"ELP 125",innerD:125,capacity:4088},{size:"ELP 150",innerD:150,capacity:5887},{size:"ELP 175",innerD:175,capacity:8013},{size:"ELP 200",innerD:200,capacity:10466}],
+PE:[{size:"14C",innerD:14,capacity:51},{size:"16C",innerD:16,capacity:66},{size:"22C",innerD:22,capacity:126},{size:"28C",innerD:28,capacity:205},{size:"36C",innerD:36,capacity:339},{size:"42C",innerD:42,capacity:461},{size:"54C",innerD:52,capacity:707},{size:"70C",innerD:66,capacity:1139},{size:"82C",innerD:77,capacity:1551},{size:"100C",innerD:99,capacity:2564}]
+};
+var CL={CD:"CD/PF (합성수지제 가요전선관)",HI:"HI (경질비닐전선관)",ST:"ST (후강전선관)",FLEX:"FLEX (제1종 가요전선관)",ELP:"ELP/FEP (파상형 경질 PE전선관)",PE:"PE/CD-P (합성수지제 평활관)"};
+var CC={CD:"#d97706",HI:"#2563eb",ST:"#4b5563",FLEX:"#7c3aed",ELP:"#059669",PE:"#db2777"};
+// === STATE ===
+var cables,conduits,calcRows=[],cableFilter="",conduitTab="CD",_rid=0;
+function init(){
+  try{cables=JSON.parse(localStorage.getItem("cc:c"));}catch(e){}
+  if(!cables||!cables.length)cables=JSON.parse(JSON.stringify(DC));
+  try{conduits=JSON.parse(localStorage.getItem("cc:d"));}catch(e){}
+  if(!conduits||!conduits.CD)conduits=JSON.parse(JSON.stringify(DD));
+  calcRows=[nr(),nr(),nr()];
+}
+function nr(){return{_k:++_rid,cableType:"",core:"",size:"",qty:1};}
+function toast(m){var t=document.getElementById("toast");t.textContent="\u2713 "+m;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2000);}
+function saveC(){localStorage.setItem("cc:c",JSON.stringify(cables));toast("케이블 자료 저장 완료");}
+function saveD(){localStorage.setItem("cc:d",JSON.stringify(conduits));toast("배관 단면적 저장 완료");}
+
+// === DOM helper ===
+function h(tag,at){
+  var el=document.createElement(tag);
+  if(at){for(var k in at){if(!at.hasOwnProperty(k))continue;var v=at[k];
+    if(k==="style"&&typeof v==="object")Object.assign(el.style,v);
+    else if(k.indexOf("on")===0)el.addEventListener(k.slice(2).toLowerCase(),v);
+    else if(k==="className")el.className=v;
+    else if(k==="disabled")el.disabled=!!v;
+    else if(k==="selected")el.selected=!!v;
+    else if(k==="value")el.value=v;
+    else if(v!==false&&v!=null)el.setAttribute(k,v);
+  }}
+  for(var i=2;i<arguments.length;i++){var c=arguments[i];if(c==null)continue;
+    if(Array.isArray(c)){for(var j=0;j<c.length;j++){if(c[j]!=null)el.append(typeof c[j]==="object"?c[j]:String(c[j]));}}
+    else el.append(typeof c==="object"?c:String(c));
+  }
+  return el;
+}
+function uniq(a,k){var s={},r=[];for(var i=0;i<a.length;i++){var v=a[i][k];if(!s[v]){s[v]=1;r.push(v);}}return r;}
+function fc(t,c,s){for(var i=0;i<cables.length;i++){var x=cables[i];if(x.type===t&&x.core===c&&x.size===s)return x;}return null;}
+function fcs(list,ta){if(!list||ta<=0)return"\u2014";for(var i=0;i<list.length;i++)if(list[i].capacity>=ta)return list[i].size;return"\uADDC\uACA9\uCD08\uACFC";}
+function ccap(d){return Math.floor(Math.PI*d*d/4/3);}
+
+// === EXPORT/IMPORT ===
+function exportData(){
+  var d={version:1,date:new Date().toISOString(),cables:cables,conduits:conduits};
+  var b=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(b);
+  a.download="conduit-data_"+new Date().toISOString().slice(0,10)+".json";
+  a.click();URL.revokeObjectURL(a.href);toast("JSON 파일 다운로드 완료");
+}
+function importData(){document.getElementById("fileInput").click();}
+document.getElementById("fileInput").addEventListener("change",function(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    try{var d=JSON.parse(ev.target.result);
+      if(d.cables&&d.cables.length){cables=d.cables;localStorage.setItem("cc:c",JSON.stringify(cables));}
+      if(d.conduits&&d.conduits.CD){conduits=d.conduits;localStorage.setItem("cc:d",JSON.stringify(conduits));}
+      toast("불러오기 완료 (케이블 "+cables.length+"건)");renderTab();
+    }catch(err){alert("JSON 형식 오류: "+err.message);}
+  };r.readAsText(f);e.target.value="";
+});
+function resetAll(){
+  if(!confirm("모든 데이터를 초기 상태로 되돌립니다.\n계속하시겠습니까?"))return;
+  cables=JSON.parse(JSON.stringify(DC));conduits=JSON.parse(JSON.stringify(DD));
+  localStorage.removeItem("cc:c");localStorage.removeItem("cc:d");
+  toast("기본값 초기화 완료");renderTab();
+}
+// === RENDER CALC ===
+function renderCalc(){
+  var el=document.getElementById("tab-calc");el.innerHTML="";
+  var ta=0,vc=0;
+  for(var i=0;i<calcRows.length;i++){var cb=fc(calcRows[i].cableType,calcRows[i].core,calcRows[i].size);if(cb&&calcRows[i].qty>0){ta+=cb.area*calcRows[i].qty;vc+=calcRows[i].qty;}}
+
+  var card=h("div",{className:"card"});
+  card.append(h("div",{className:"card-head",style:{background:"#eef2ff",borderColor:"#c7d2fe"}},
+    h("span",{style:{fontSize:"14px",fontWeight:700,color:"#1e3a8a"}},"케이블 입력 ",h("span",{style:{color:"#6b7280",fontWeight:400,fontSize:"12px"}},"— 노란색 칸에 입력")),
+    h("button",{className:"btn bp",onClick:function(){calcRows.push(nr());renderCalc();}},"+ 행 추가")));
+
+  var wrap=h("div",{style:{overflowX:"auto"}});
+  var tbl=h("table",{style:{minWidth:"700px"}});
+  var thd=h("thead");var hr=h("tr");
+  ["","케이블 종별","심선수","도체크기","외경(㎜)","단면적(㎟)","수량","합계(㎟)"].forEach(function(t,i){
+    hr.append(h("th",{style:{textAlign:i>3?"center":"left",width:i===0?"32px":"auto"}},t));});
+  thd.append(hr);tbl.append(thd);
+
+  var tb=h("tbody");
+  calcRows.forEach(function(row,ri){
+    var cb=fc(row.cableType,row.core,row.size);
+    var types=uniq(cables,"type");
+    var cores=row.cableType?uniq(cables.filter(function(c){return c.type===row.cableType;}),"core"):[];
+    var sizes=row.cableType&&row.core?cables.filter(function(c){return c.type===row.cableType&&c.core===row.core;}).map(function(c){return c.size;}):[];
+    var sub=cb?cb.area*(row.qty||0):0;
+    var tr=h("tr");
+    tr.append(h("td",{style:{textAlign:"center",padding:"4px"}},h("button",{className:"bx",onClick:function(){if(calcRows.length>1){calcRows.splice(ri,1);renderCalc();}}},"×")));
+
+    var s1=h("select",{className:"inp",onChange:function(e){row.cableType=e.target.value;row.core="";row.size="";renderCalc();}});
+    s1.append(h("option",{value:""},"선택"));
+    types.forEach(function(t){var o=h("option",{value:t},t);if(t===row.cableType)o.selected=true;s1.append(o);});
+    tr.append(h("td",null,s1));
+
+    var s2=h("select",{className:"inp",disabled:!row.cableType,onChange:function(e){row.core=e.target.value;row.size="";renderCalc();}});
+    s2.append(h("option",{value:""},"선택"));
+    cores.forEach(function(c){var o=h("option",{value:c},c);if(c===row.core)o.selected=true;s2.append(o);});
+    tr.append(h("td",null,s2));
+
+    var s3=h("select",{className:"inp",disabled:!row.core,onChange:function(e){row.size=e.target.value;renderCalc();}});
+    s3.append(h("option",{value:""},"선택"));
+    sizes.forEach(function(s){var o=h("option",{value:s},s);if(s===row.size)o.selected=true;s3.append(o);});
+    tr.append(h("td",null,s3));
+
+    tr.append(h("td",{className:"mono",style:{textAlign:"center",fontWeight:500}},cb?String(cb.od):"\u2014"));
+    tr.append(h("td",{className:"mono",style:{textAlign:"center",fontWeight:500}},cb?String(cb.area):"\u2014"));
+    tr.append(h("td",{style:{width:"60px"}},h("input",{type:"number",className:"inp inp-num",value:String(row.qty),style:{width:"54px"},onChange:function(e){row.qty=Math.max(0,parseInt(e.target.value)||0);renderCalc();}})));
+    tr.append(h("td",{className:"mono",style:{textAlign:"center",fontWeight:sub>0?700:400,color:sub>0?"#1e40af":"#9ca3af"}},sub>0?sub.toLocaleString():"\u2014"));
+    tb.append(tr);
+  });
+  tbl.append(tb);
+
+  var tf=h("tfoot");var fr=h("tr",{style:{background:"#dbeafe"}});
+  var fd1=h("td",{style:{padding:"11px 16px",textAlign:"right",fontSize:"13px",fontWeight:700,color:"#1e3a8a"}});
+  fd1.setAttribute("colspan","6");fd1.textContent="총 단면적 합계";fr.append(fd1);
+  fr.append(h("td",{style:{padding:"11px 8px",textAlign:"center",fontWeight:700,color:"#374151"}},String(vc||"\u2014")));
+  var fd3=h("td",{className:"mono",style:{padding:"11px 8px",textAlign:"center",fontSize:"16px",fontWeight:800,color:ta>0?"#1e3a8a":"#9ca3af"}});
+  fd3.textContent=ta>0?ta.toLocaleString()+" ㎟":"\u2014";fr.append(fd3);
+  tf.append(fr);tbl.append(tf);wrap.append(tbl);card.append(wrap);el.append(card);
+
+  // Results
+  var rc=h("div",{className:"card",style:{marginBottom:"16px"}});
+  rc.append(h("div",{className:"card-head",style:{background:"#ecfdf5",borderColor:"#a7f3d0"}},
+    h("span",{style:{fontSize:"14px",fontWeight:700,color:"#065f46"}},"선정 결과 ",h("span",{style:{color:"#6b7280",fontWeight:400,fontSize:"12px"}},"— 전선관 종류별 최소 사이즈"))));
+  var grid=h("div",{className:"rg"});
+  Object.keys(CL).forEach(function(key){
+    var label=CL[key],sel=fcs(conduits[key],ta),isO=sel==="\uADDC\uACA9\uCD08\uACFC",hasR=sel&&sel!=="\u2014";
+    var mt=null;if(conduits[key])for(var i=0;i<conduits[key].length;i++)if(conduits[key][i].size===sel){mt=conduits[key][i];break;}
+    var fr=mt&&ta>0?Math.min((ta/(mt.capacity*3))*100,100):0;
+    var co=CC[key],sl=label.indexOf("(")>=0?label.slice(label.indexOf("(")+1).replace(")",""):"";
+
+    var cd=h("div",{className:"rc",style:{background:isO?"#fef2f2":hasR?"#fafbff":"#f9fafb",borderColor:isO?"#fca5a5":hasR?co:"#e5e7eb"}});
+    cd.append(h("div",{className:"bar",style:{background:hasR&&!isO?co:isO?"#ef4444":"transparent"}}));
+    var tp=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px"}});
+    tp.append(h("div",null,h("div",{style:{fontSize:"11px",fontWeight:700,color:co,letterSpacing:"0.05em"}},key),h("div",{style:{fontSize:"11px",color:"#6b7280",fontWeight:500}},sl)));
+    tp.append(h("div",{className:"mono",style:{fontSize:hasR?"20px":"16px",fontWeight:800,color:isO?"#dc2626":hasR?"#111827":"#d1d5db"}},sel));
+    cd.append(tp);
+    if(hasR&&!isO&&mt){
+      var info=h("div");
+      var r1=h("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:"4px"}});
+      r1.append(h("span",{style:{fontSize:"11px",color:"#6b7280",fontWeight:500}},"충전율"));
+      r1.append(h("span",{className:"mono",style:{fontSize:"11px",fontWeight:700,color:fr>90?"#dc2626":"#374151"}},fr.toFixed(1)+"%"));
+      info.append(r1);
+      var bo=h("div",{style:{height:"6px",background:"#e5e7eb",borderRadius:"3px",overflow:"hidden"}});
+      bo.append(h("div",{style:{height:"100%",width:fr+"%",background:co,borderRadius:"3px"}}));
+      info.append(bo);
+      info.append(h("div",{className:"mono",style:{fontSize:"10px",color:"#6b7280",marginTop:"4px"}},"허용: "+mt.capacity.toLocaleString()+"㎟ / 사용: "+ta.toLocaleString()+"㎟"));
+      cd.append(info);
+    }
+    if(isO)cd.append(h("div",{style:{fontSize:"11px",color:"#dc2626",fontWeight:700,marginTop:"4px"}},"⚠ 최대 규격 초과"));
+    grid.append(cd);
+  });
+  rc.append(grid);el.append(rc);
+  el.append(h("div",{className:"fi"},h("span",null,"📌 KECG 1701-2021"),h("span",null,"📌 단면적 = π×외경²/4"),h("span",null,"📌 충전율: 1/3 이하"),h("span",null,"📌 주택공사 자료")));
+}
+// === RENDER CABLES ===
+function renderCables(){
+  var el=document.getElementById("tab-cables");el.innerHTML="";
+  var card=h("div",{className:"card"});
+  card.append(h("div",{className:"card-head",style:{background:"#fef3c7",borderColor:"#fbbf24"}},
+    h("span",{style:{fontSize:"14px",fontWeight:700,color:"#92400e"}},"🔌 케이블 자료 편집"),
+    h("span",{style:{fontSize:"11px",color:"#92400e",fontWeight:600}},"총 "+cables.length+"건 · 💾 저장으로 영구 보관")));
+
+  var types=uniq(cables,"type");
+  var fb=h("div",{className:"fbar"});
+  fb.append(h("button",{className:"fb"+(cableFilter?"":" on"),onClick:function(){cableFilter="";renderCables();}},"전체 ("+cables.length+")"));
+  types.forEach(function(t){fb.append(h("button",{className:"fb"+(cableFilter===t?" on":""),onClick:function(){cableFilter=t;renderCables();}},t+" ("+cables.filter(function(c){return c.type===t;}).length+")"));});
+  card.append(fb);
+
+  var fl=cableFilter?cables.filter(function(c){return c.type===cableFilter;}):cables;
+  var wrap=h("div",{style:{overflowX:"auto",maxHeight:"400px",overflowY:"auto"}});
+  var tbl=h("table",{style:{minWidth:"560px"}});
+  var thd=h("thead",{style:{position:"sticky",top:"0",zIndex:"2"}});
+  var hr=h("tr",{style:{background:"#e5e7eb"}});
+  ["삭제","종별","심선수","도체크기","외경","단면적"].forEach(function(t,i){hr.append(h("th",{style:{textAlign:i===0||i>3?"center":"left",width:i===0?"32px":"auto"}},t));});
+  thd.append(hr);tbl.append(thd);
+
+  var tb=h("tbody");
+  fl.forEach(function(c,fi){
+    var ri=cableFilter?cables.indexOf(c):fi;
+    var tr=h("tr");
+    tr.append(h("td",{style:{textAlign:"center"}},h("button",{className:"bx",onClick:function(){cables.splice(ri,1);renderCables();}},"×")));
+    function mi(v,f,w){var n=f==="od"||f==="area";return h("input",{type:n?"number":"text",step:f==="od"?"0.1":undefined,className:"inp"+(n?" inp-num":""),value:String(v),style:{width:w||"100%"},onChange:function(e){cables[ri][f]=n?(Number(e.target.value)||0):e.target.value;}});}
+    tr.append(h("td",null,mi(c.type,"type")));
+    tr.append(h("td",null,mi(c.core,"core","70px")));
+    tr.append(h("td",null,mi(c.size,"size","80px")));
+    tr.append(h("td",{style:{textAlign:"center"}},mi(c.od,"od","68px")));
+    tr.append(h("td",{style:{textAlign:"center"}},mi(c.area,"area","68px")));
+    tb.append(tr);
+  });
+  tbl.append(tb);wrap.append(tbl);card.append(wrap);
+
+  var btns=h("div",{className:"tb"});
+  btns.append(h("button",{className:"btn bg",onClick:function(){var mx=0;cables.forEach(function(c){if(c.id>mx)mx=c.id;});cables.push({id:mx+1,type:cableFilter||"",core:"",size:"",od:0,area:0});renderCables();}},"+ 케이블 추가"));
+  btns.append(h("button",{className:"btn bp",onClick:saveC},"💾 저장"));
+  btns.append(h("button",{className:"btn bgr",onClick:function(){cables=JSON.parse(JSON.stringify(DC));renderCables();}},"기본값 복원"));
+  card.append(btns);el.append(card);
+}
+
+// === RENDER CONDUITS ===
+function renderConduits(){
+  var el=document.getElementById("tab-conduits");el.innerHTML="";
+  var card=h("div",{className:"card"});
+  card.append(h("div",{className:"card-head",style:{background:"#d1fae5",borderColor:"#6ee7b7"}},
+    h("span",{style:{fontSize:"14px",fontWeight:700,color:"#065f46"}},"📐 배관 단면적 편집"),
+    h("span",{style:{fontSize:"11px",color:"#065f46",fontWeight:600}},"내경 수정 시 자동 계산 · 💾 저장으로 영구 보관")));
+
+  var fb=h("div",{className:"fbar"});
+  Object.keys(CL).forEach(function(k){
+    fb.append(h("button",{className:"fb"+(conduitTab===k?" on":""),style:{background:conduitTab===k?CC[k]:"transparent",color:conduitTab===k?"#fff":"#374151"},onClick:function(){conduitTab=k;renderConduits();}},k));
+  });
+  card.append(fb);
+  var sl=CL[conduitTab].indexOf("(")>=0?CL[conduitTab]:"";
+  card.append(h("div",{style:{padding:"8px 12px 4px",fontSize:"12px",color:"#374151",fontWeight:600}},CL[conduitTab]));
+
+  var data=conduits[conduitTab]||[];
+  var wrap=h("div",{style:{overflowX:"auto",padding:"0 12px 8px"}});
+  var tbl=h("table",{style:{maxWidth:"520px"}});
+  var thd=h("thead");var hr=h("tr",{style:{background:"#e5e7eb"}});
+  ["삭제","관의 굵기","내경(㎜)","내단면적(㎟)","1/3 허용(㎟)"].forEach(function(t,i){hr.append(h("th",{style:{textAlign:i===0||i>1?"center":"left",width:i===0?"32px":"auto"}},t));});
+  thd.append(hr);tbl.append(thd);
+
+  var tb=h("tbody");
+  data.forEach(function(item,i){
+    var fa=Math.round(Math.PI*item.innerD*item.innerD/4);
+    var tr=h("tr");
+    tr.append(h("td",{style:{textAlign:"center"}},h("button",{className:"bx",onClick:function(){conduits[conduitTab].splice(i,1);renderConduits();}},"×")));
+    tr.append(h("td",null,h("input",{className:"inp",value:item.size,style:{width:"100px"},onChange:function(e){conduits[conduitTab][i].size=e.target.value;}})));
+    tr.append(h("td",{style:{textAlign:"center"}},h("input",{type:"number",step:"0.1",className:"inp inp-num",value:String(item.innerD),style:{width:"76px"},onChange:function(e){var v=Number(e.target.value)||0;conduits[conduitTab][i].innerD=v;conduits[conduitTab][i].capacity=ccap(v);renderConduits();}})));
+    tr.append(h("td",{className:"mono",style:{textAlign:"center",color:"#374151"}},fa.toLocaleString()));
+    tr.append(h("td",{className:"mono",style:{textAlign:"center",fontWeight:700}},item.capacity.toLocaleString()));
+    tb.append(tr);
+  });
+  tbl.append(tb);wrap.append(tbl);card.append(wrap);
+
+  var btns=h("div",{className:"tb"});
+  btns.append(h("button",{className:"btn",style:{background:CC[conduitTab]},onClick:function(){conduits[conduitTab].push({size:"",innerD:0,capacity:0});renderConduits();}},"+ 규격 추가"));
+  btns.append(h("button",{className:"btn bp",onClick:saveD},"💾 저장"));
+  btns.append(h("button",{className:"btn bgr",onClick:function(){conduits[conduitTab]=JSON.parse(JSON.stringify(DD[conduitTab]));renderConduits();}},"기본값 복원"));
+  card.append(btns);el.append(card);
+}
+
+// === RENDER SYNC ===
+function renderSync(){
+  var el=document.getElementById("tab-sync");el.innerHTML="";
+
+  var c1=h("div",{className:"sc"});
+  c1.append(h("h3",null,"📤 데이터 내보내기 (JSON)"));
+  c1.append(h("p",null,"현재 저장된 케이블 자료와 배관 단면적 데이터를 JSON 파일로 다운로드합니다. 다른 PC나 스마트폰에서 불러올 수 있습니다."));
+  c1.append(h("div",{className:"sr"},h("button",{className:"btn bp",onClick:exportData},"📥 JSON 파일 다운로드")));
+  el.append(c1);
+
+  var c2=h("div",{className:"sc"});
+  c2.append(h("h3",null,"📥 데이터 불러오기"));
+  c2.append(h("p",null,"다른 기기에서 내보낸 JSON 파일을 선택하면 케이블 및 배관 데이터가 즉시 반영됩니다."));
+  c2.append(h("div",{className:"sr"},h("button",{className:"btn bo",onClick:importData},"📂 JSON 파일 선택")));
+  el.append(c2);
+
+  var c3=h("div",{className:"sc"});
+  c3.append(h("h3",null,"🔄 초기화"));
+  c3.append(h("p",null,"모든 커스텀 데이터를 삭제하고 기본 내장 데이터로 되돌립니다."));
+  c3.append(h("div",{className:"sr"},h("button",{className:"btn br",onClick:resetAll},"⚠ 전체 초기화")));
+  el.append(c3);
+
+  var c4=h("div",{className:"sc",style:{background:"#f9fafb"}});
+  c4.append(h("h3",{style:{fontSize:"13px",color:"#6b7280"}},"💡 사용 팁"));
+  var tips=h("div",{style:{fontSize:"12px",color:"#6b7280",lineHeight:"1.8"}});
+  tips.innerHTML="• 케이블/배관 탭에서 수정 후 반드시 <b>💾 저장</b> 버튼을 누르세요<br>• 같은 브라우저에서는 저장 데이터가 자동 유지됩니다<br>• 다른 PC/스마트폰으로 옮기려면 <b>JSON 내보내기 → 파일 전송 → 불러오기</b><br>• 카카오톡, 이메일 등으로 JSON 파일을 보내면 됩니다";
+  c4.append(tips);
+  el.append(c4);
+}
+
+// === TAB SWITCHING ===
+var currentTab="calc";
+function renderTab(){
+  if(currentTab==="calc")renderCalc();
+  else if(currentTab==="cables")renderCables();
+  else if(currentTab==="conduits")renderConduits();
+  else if(currentTab==="sync")renderSync();
+}
+document.querySelectorAll(".top-tab").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    document.querySelectorAll(".top-tab").forEach(function(b){b.classList.remove("active");});
+    document.querySelectorAll(".tp").forEach(function(p){p.classList.remove("on");});
+    btn.classList.add("active");
+    currentTab=btn.dataset.tab;
+    document.getElementById("tab-"+currentTab).classList.add("on");
+    renderTab();
+  });
+});
+
+// === INIT ===
+init();
+renderCalc();
+</script></body></html>
